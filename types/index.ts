@@ -1,9 +1,16 @@
+export interface UserStats {
+    totalSellers: number;
+    totalProducts: number;
+    lastActive: number;
+}
+
 export interface User {
     id: string;
     name: string;
     phone: string;
     createdAt: Date;
     updatedAt: Date;
+    stats: UserStats;
 }
 
 export interface Seller {

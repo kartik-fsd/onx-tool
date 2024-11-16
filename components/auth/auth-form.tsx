@@ -1,8 +1,11 @@
+// components/auth/auth-form.tsx
 "use client";
+
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,18 +17,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { userAuthSchema } from "@/lib/validation/auth";
+import { userAuthSchema, type AuthFormData } from "@/lib/validation/auth";
 import { useFormState } from "@/lib/context/form-context";
-import { useForm } from "react-hook-form";
-
-type FormData = z.infer<typeof userAuthSchema>;
 
 export function AuthForm() {
   const router = useRouter();
   const { dispatch } = useFormState();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<FormData>({
+  const form = useForm<AuthFormData>({
     resolver: zodResolver(userAuthSchema),
     defaultValues: {
       name: "",
@@ -33,7 +33,7 @@ export function AuthForm() {
     },
   });
 
-  async function onSubmit(data: FormData) {
+  async function onSubmit(data: AuthFormData) {
     setIsLoading(true);
     try {
       const response = await fetch("/api/auth", {
@@ -44,17 +44,39 @@ export function AuthForm() {
         body: JSON.stringify(data),
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        throw new Error("Authentication failed");
+        throw new Error(responseData.message || "Authentication failed");
       }
 
-      const user = await response.json();
-      dispatch({ type: "SET_USER", payload: user });
+      // Update form context with user data
+      dispatch({
+        type: "SET_USER",
+        payload: {
+          id: responseData.id,
+          name: responseData.name,
+          phone: responseData.phone,
+          stats: responseData.stats,
+        },
+      });
+
       dispatch({ type: "SET_STEP", payload: "seller" });
+
+      toast({
+        title: "Welcome",
+        description: `${responseData.message}. You've added ${responseData.stats.totalSellers} sellers and ${responseData.stats.totalProducts} products so far.`,
+      });
+
       router.push("/add-seller");
     } catch (error) {
       console.error("Authentication error:", error);
-      // Handle error appropriately
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to authenticate",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +92,11 @@ export function AuthForm() {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your name" {...field} />
+                <Input
+                  placeholder="Enter your name"
+                  {...field}
+                  autoComplete="name"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -88,6 +114,7 @@ export function AuthForm() {
                   type="tel"
                   maxLength={10}
                   {...field}
+                  autoComplete="tel"
                 />
               </FormControl>
               <FormMessage />
