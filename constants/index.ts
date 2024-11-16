@@ -1,13 +1,11 @@
-
-
-export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-// constants/index.ts
 import { config } from '@/lib/env'
 
-export const ALLOWED_FILE_TYPES = config.app.allowedFileTypes
-export const MAX_FILE_SIZE = config.app.maxFileSize
-export const MINIMUM_PRODUCTS = config.app.minProducts
-export const MAXIMUM_PRODUCTS = config.app.maxProducts
+const { maxFileSize, minProducts, maxProducts, allowedFileTypes } = config.app
+export const ALLOWED_FILE_TYPES = allowedFileTypes
+export const MAX_FILE_SIZE = maxFileSize
+export const MINIMUM_PRODUCTS = minProducts
+export const MAXIMUM_PRODUCTS = maxProducts
+export const IMAGE_TYPES = allowedFileTypes
 
 // Image upload related constants
 export const IMAGE_UPLOAD_CONFIG = {
