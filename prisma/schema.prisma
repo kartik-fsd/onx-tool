@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  sellers   Seller[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([phone])
+}
+
+model Seller {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String
+  gstNumber String    @unique
+  shopImage String
+  products  Product[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([gstNumber])
+}
+
+model Product {
+  id         String   @id @default(cuid())
+  name       String
+  mrp        Float
+  msp        Float
+  frontImage String
+  sideImage  String
+  backImage  String
+  seller     Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sellerId])
+}
